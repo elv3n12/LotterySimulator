@@ -40,6 +40,9 @@ const CENTER_Z = 1;  // First layer
 // Add at top with other globals
 let totalDrawings = 0;
 
+// Add at top with other globals
+let needsUpdate = false;
+
 // Replace the existing initStats function
 function initStats() {
     if (typeof Stats === 'undefined') {
@@ -144,6 +147,43 @@ const gridSize = 50;
 const spacing = 2;
 const dots = {};
 let currentDrawing = 1;
+
+// 1. Create shared geometry and materials
+const sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+const materials = {
+    default: new THREE.MeshPhongMaterial({
+        color: DEFAULT_COLOR,
+        transparent: true,
+        opacity: 0.8
+    }),
+    matched: new THREE.MeshPhongMaterial({
+        color: MATCH_COLORS[2],
+        transparent: false,    // No transparency needed
+        opacity: 1.0          // Fully opaque
+    })
+};
+
+// 2. Use InstancedMesh for all balls
+const MAX_INSTANCES = 50 * 52; // Max number of balls
+const instancedMesh = new THREE.InstancedMesh(
+    sphereGeometry,
+    materials.default,
+    MAX_INSTANCES
+);
+scene.add(instancedMesh);
+
+// 3. Optimize matrix updates
+const matrix = new THREE.Matrix4();
+const updateBallPosition = (index, x, y, z, scale) => {
+    matrix.setPosition(x * spacing, y * spacing, z * spacing);
+    matrix.scale(new THREE.Vector3(scale, scale, scale));
+    instancedMesh.setMatrixAt(index, matrix);
+    needsUpdate = true; // Flag for batch updates
+};
+
+// 4. Add frustum culling
+const frustum = new THREE.Frustum();
+const projScreenMatrix = new THREE.Matrix4();
 
 // Modify createLayer function
 function createLayer(zLayer) {
@@ -666,5 +706,52 @@ document.addEventListener('click', (event) => {
         tooltip.style.display = 'none';
     }
 });
+
+// 5. Optimized animate loop
+function animate() {
+    if (stats) stats.begin();
+
+    // Update only if camera moved
+    if (controls.changed) {
+        projScreenMatrix.multiplyMatrices(
+            camera.projectionMatrix,
+            camera.matrixWorldInverse
+        );
+        frustum.setFromProjectionMatrix(projScreenMatrix);
+    }
+
+    // Batch matrix updates
+    if (needsUpdate) {
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        needsUpdate = false;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+
+    if (stats) stats.end();
+    requestAnimationFrame(animate);
+}
+
+// 6. Add LOD based on distance
+const updateLOD = () => {
+    const cameraPosition = camera.position;
+    sphereGeometry.dispose();
+    
+    if (cameraPosition.z > 100) {
+        sphereGeometry = new THREE.SphereGeometry(1, 8, 8);
+    } else {
+        sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+    }
+};
+
+// 7. Additional optimizations
+renderer.powerPreference = "high-performance";
+renderer.antialias = false;
+
+// Debug helpers
+renderer.info.reset();
+console.log(renderer.info.render.calls);
+console.log(renderer.info.memory.geometries);
 
 
