@@ -7,16 +7,14 @@ camera.position.set(100, 100, 50);
 camera.lookAt(100, 100, 100);
 
 // Add at the top with other configurations
-//const MATCH_COLOR = 0x00ff00; // Bright green
-const DEFAULT_COLOR = 0x1e90ff; // Dodger blue for default
+const DEFAULT_COLOR = 0x16304C; // Dodger blue for default
 
 // Update color constants at the top of script.js
 const MATCH_COLORS = {
-    1: 0xffd700,  // Gold for 1 match
     2: 0xff4500,  // Orange red for 2 matches
     3: 0x32cd32,  // Lime green for 3 matches
     4: 0x8a2be2,  // Blue violet for 4 matches
-    5: 0xff69b4   // Hot pink for 5 matches
+    5: 0xffd700,  // Gold for 5 match
 };
 
 // Add at top with other configurations
@@ -129,11 +127,11 @@ controls.dampingFactor = 0.04;
 controls.screenSpacePanning = true;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0x404040);
+const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(10, 10, 10);
-scene.add(directionalLight);
+//const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+//directionalLight.position.set(10, 10, 10);
+//scene.add(directionalLight);
 
 // Configuration
 const gridSize = 50;
