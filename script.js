@@ -40,6 +40,9 @@ const CENTER_Z = 1;  // First layer
 // Add at top with other globals
 let totalDrawings = 0;
 
+// Add at top with other globals
+let needsUpdate = false;
+
 // Replace the existing initStats function
 function initStats() {
     if (typeof Stats === 'undefined') {
@@ -133,8 +136,11 @@ controls.dampingFactor = 0.05;
 controls.screenSpacePanning = true;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+const ambientLight = new THREE.AmbientLight(0x404040);
 scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(10, 10, 10);
+scene.add(directionalLight);
 
 // Configuration
 const gridSize = 50;
@@ -142,27 +148,62 @@ const spacing = 2;
 const dots = {};
 let currentDrawing = 1;
 
-// Modify createLayer function
+// 1. Create shared geometry and materials
+const sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+const materials = {
+    default: new THREE.MeshPhongMaterial({
+        color: DEFAULT_COLOR,
+        transparent: true,
+        opacity: 0.8
+    }),
+    matched: new THREE.MeshPhongMaterial({
+        color: MATCH_COLORS[2],
+        transparent: false,    // No transparency needed
+        opacity: 1.0          // Fully opaque
+    })
+};
+
+// 2. Use InstancedMesh for all balls
+const MAX_INSTANCES = 50 * 52; // Max number of balls
+const instancedMesh = new THREE.InstancedMesh(
+    sphereGeometry,
+    materials.default,
+    MAX_INSTANCES
+);
+scene.add(instancedMesh);
+
+// 3. Optimize matrix updates
+const matrix = new THREE.Matrix4();
+const updateBallPosition = (index, x, y, z, scale) => {
+    matrix.setPosition(x * spacing, y * spacing, z * spacing);
+    matrix.scale(new THREE.Vector3(scale, scale, scale));
+    instancedMesh.setMatrixAt(index, matrix);
+    needsUpdate = true; // Flag for batch updates
+};
+
+// 4. Add frustum culling
+const frustum = new THREE.Frustum();
+const projScreenMatrix = new THREE.Matrix4();
+
+// Update the createLayer function
 function createLayer(zLayer) {
     const probabilities = calculateProbabilities();
     
     for (let x = 1; x <= 52; x++) {
         for (let y = 1; y <= gridSize; y++) {
-            const radius = probabilities[y]; // y corresponds to the number
-            const geometry = new THREE.SphereGeometry(radius, 16, 16); // Reduced segments
-            const material = new THREE.MeshBasicMaterial({ 
+            const radius = probabilities[y];
+            const geometry = new THREE.SphereGeometry(radius, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ 
                 color: DEFAULT_COLOR,
-                transparent: true,
-                opacity: 0
+                shininess: 100
             });
             const dot = new THREE.Mesh(geometry, material);
             dot.position.set(x * spacing, y * spacing, zLayer * spacing);
+            dot.visible = false; // Start invisible
+            
             dots[`${x},${y},${zLayer}`] = {
                 mesh: dot,
-                created: null,
-                initialOpacity: 0.95,
-                targetOpacity: 0.1,
-                transitionDuration: 20000
+                drawn: false // Track if ball has been drawn
             };
             scene.add(dot);
         }
@@ -286,32 +327,28 @@ function calculateMatchChances() {
 
 // Simplify animation loop to only handle ball fading
 function animate() {
-    if (stats?.begin) {
-        stats.begin();
-    }
-    
-    requestAnimationFrame(animate);
-    
-    // Handle ball fading
+    if (stats) stats.begin();
+
+    // Update frustum for culling
+    camera.updateMatrixWorld();
+    projScreenMatrix.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(projScreenMatrix);
+
+    // Check each dot against frustum
     Object.values(dots).forEach(dot => {
-        if (dot.created) {
-            const age = Date.now() - dot.created;
-            if (age < dot.transitionDuration) {
-                const progress = age / dot.transitionDuration;
-                dot.mesh.material.opacity = dot.initialOpacity + 
-                    (dot.targetOpacity - dot.initialOpacity) * progress;
-            } else {
-                dot.mesh.material.opacity = dot.targetOpacity;
-            }
+        if (dot.mesh.boundingSphere) {
+            dot.mesh.visible = frustum.intersectsSphere(dot.mesh.boundingSphere);
         }
     });
-    
+
     controls.update();
-    renderer.render(scene, camera); // Use renderer instead of composer
-    
-    if (stats?.end) {
-        stats.end();
-    }
+    renderer.render(scene, camera);
+
+    if (stats) stats.end();
+    requestAnimationFrame(animate);
 }
 
 // Helper function to find most common numbers
@@ -388,9 +425,10 @@ function generateNumbers() {
         const key = `${xPosition},${number},${zLayer}`;
         if (dots[key]) {
             const dot = dots[key];
-            dot.mesh.material.opacity = dot.initialOpacity;
+            dot.mesh.visible = true;
             dot.mesh.material.color.setHex(DEFAULT_COLOR);
-            dot.created = Date.now();
+            dot.mesh.material.emissive.setHex(0x444444);
+            dot.drawn = true;
         }
     });
 
@@ -444,10 +482,10 @@ function updateAllMatches() {
     drawings.forEach(drawing => {
         drawing.numbers.forEach(number => {
             const key = `${drawing.position.x},${number},${drawing.position.z}`;
-            if (dots[key]) {
+            if (dots[key] && dots[key].drawn) {
                 const dot = dots[key];
                 dot.mesh.material.color.setHex(DEFAULT_COLOR);
-                dot.mesh.material.opacity = dot.initialOpacity;
+                dot.mesh.material.emissive.setHex(0x444444);
                 dot.mesh.scale.set(1, 1, 1); // Reset scale
                 dot.created = Date.now(); // Restart fade animation
             }
@@ -467,7 +505,7 @@ function updateAllMatches() {
             // Apply colors and scale to all numbers in matching drawing
             drawing.numbers.forEach(number => {
                 const key = `${drawing.position.x},${number},${drawing.position.z}`;
-                if (dots[key]) {
+                if (dots[key] && dots[key].drawn) {
                     const dot = dots[key];
                     const matchColor = MATCH_COLORS[matches.size];
                     dot.mesh.material.color.setHex(matchColor);
@@ -659,5 +697,52 @@ document.addEventListener('click', (event) => {
         tooltip.style.display = 'none';
     }
 });
+
+// 5. Optimized animate loop
+function animate() {
+    if (stats) stats.begin();
+
+    // Update only if camera moved
+    if (controls.changed) {
+        projScreenMatrix.multiplyMatrices(
+            camera.projectionMatrix,
+            camera.matrixWorldInverse
+        );
+        frustum.setFromProjectionMatrix(projScreenMatrix);
+    }
+
+    // Batch matrix updates
+    if (needsUpdate) {
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        needsUpdate = false;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+
+    if (stats) stats.end();
+    requestAnimationFrame(animate);
+}
+
+// 6. Add LOD based on distance
+const updateLOD = () => {
+    const cameraPosition = camera.position;
+    sphereGeometry.dispose();
+    
+    if (cameraPosition.z > 100) {
+        sphereGeometry = new THREE.SphereGeometry(1, 8, 8);
+    } else {
+        sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+    }
+};
+
+// 7. Additional optimizations
+renderer.powerPreference = "high-performance";
+renderer.antialias = false;
+
+// Debug helpers
+renderer.info.reset();
+console.log(renderer.info.render.calls);
+console.log(renderer.info.memory.geometries);
 
 
