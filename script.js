@@ -135,7 +135,7 @@ scene.add(ambientLight);
 
 // Configuration
 const gridSize = 50;
-const spacing = 2;
+const spacing = 3;
 const dots = {};
 let currentDrawing = 1;
 
