@@ -99,19 +99,19 @@ renderer.domElement.style.left = '0';
 renderer.domElement.style.zIndex = '1';
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-// Add Bokeh effect setup
-const composer = new THREE.EffectComposer(renderer);
-const renderPass = new THREE.RenderPass(scene, camera);
-composer.addPass(renderPass);
+// Remove Bokeh effect setup
+// const composer = new THREE.EffectComposer(renderer);
+// const renderPass = new THREE.RenderPass(scene, camera);
+// composer.addPass(renderPass);
 
-const bokehPass = new THREE.BokehPass(scene, camera, {
-    focus: 200,
-    aperture: 2.2,
-    maxblur: 0.005,
-    width: window.innerWidth,
-    height: window.innerHeight
-});
-composer.addPass(bokehPass);
+// const bokehPass = new THREE.BokehPass(scene, camera, {
+//     focus: 200,
+//     aperture: 2.2,
+//     maxblur: 0.005,
+//     width: window.innerWidth,
+//     height: window.innerHeight
+// });
+// composer.addPass(bokehPass);
 
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -296,7 +296,7 @@ function animate() {
     });
     
     controls.update();
-    composer.render(); // Use composer instead of renderer
+    renderer.render(scene, camera); // Use renderer instead of composer
 }
 
 // Helper function to find most common numbers
@@ -483,7 +483,7 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
+    // composer.setSize(window.innerWidth, window.innerHeight); // Remove composer resize
 });
 
 // Debug panel
