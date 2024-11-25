@@ -41,6 +41,17 @@ let totalDrawings = 0;
 // Add at top with other globals
 let needsUpdate = false;
 
+// Add at top with other globals
+const MAX_LAYERS = 52;
+let activeLayerIndices = []; // Track which layers are currently displayed
+
+// Add CSS classes at the top with other configurations
+const CSS_CLASSES = `
+    .negative { color: #ff4444; }
+    .positive { color: #44ff44; }
+    .zero { color: #ff4444; }
+`;
+
 // Replace the existing initStats function
 function initStats() {
     if (typeof Stats === 'undefined') {
@@ -175,8 +186,36 @@ const updateBallPosition = (index, x, y, z, scale) => {
 const frustum = new THREE.Frustum();
 const projScreenMatrix = new THREE.Matrix4();
 
+// Function to remove oldest layer
+function removeOldestLayer() {
+    if (activeLayerIndices.length > 0) {
+        const oldestZ = activeLayerIndices[0];
+        
+        // Remove all balls in oldest layer
+        Object.entries(dots).forEach(([key, dot]) => {
+            const [_, __, z] = key.split(',').map(Number);
+            if (z === oldestZ) {
+                scene.remove(dot.mesh);
+                dot.mesh.geometry.dispose();
+                dot.mesh.material.dispose();
+                delete dots[key];
+            }
+        });
+        
+        // Remove from tracking array
+        activeLayerIndices.shift();
+        needsUpdate = true;
+    }
+}
+
 // Update the createLayer function
 function createLayer(zLayer) {
+    // Remove oldest layer if we exceed MAX_LAYERS
+    if (activeLayerIndices.length >= MAX_LAYERS) {
+        removeOldestLayer();
+    }
+    
+    // Add new layer
     const probabilities = calculateProbabilities();
     
     for (let x = 1; x <= 52; x++) {
@@ -198,6 +237,10 @@ function createLayer(zLayer) {
             scene.add(dot);
         }
     }
+    
+    // Track new layer
+    activeLayerIndices.push(zLayer);
+    needsUpdate = true;
 }
 
 // Input handling
@@ -432,20 +475,20 @@ function generateNumbers() {
     const chances = calculateMatchChances();
     
     // Update debug console with all information
-    debugDiv.textContent = `Drawing #${currentDrawing}: ${Array.from(numbers).join(', ')}\n
+    debugDiv.innerHTML = `Drawing #${currentDrawing}: ${Array.from(numbers).join(', ')}\n
 Most common numbers: ${getMostCommonNumbers().join(',')}\n
 Most common pair: ${findCommonCombinations(2).join(',')}\n
 Most common triplet: ${findCommonCombinations(3).join(',')}\n
 Most common quadruplet: ${findCommonCombinations(4).join(',')}\n
 Most common quintuplet: ${findCommonCombinations(5).join(',')}\n
 Last occurrence of Prediction: ${findLastOccurrence(prediction)}\n
-Chance of pairs: ${chances.pairs.toFixed(6)}%\n
-Chance of triplets: ${chances.triplets.toFixed(6)}%\n
-Chance of quadruplets: ${chances.quadruplets.toFixed(6)}%\n
-Chance of quintuplets: ${chances.quintuplets.toFixed(6)}%\n
-Losses: ${totalLosses.toFixed(2)} EUR\n
-Gains: ${totalGains.toFixed(2)} EUR\n
-Balance: ${(totalGains - totalLosses).toFixed(2)} EUR`;
+Chance of pairs: ${formatDebugValue(chances.pairs, 'chance')}\n
+Chance of triplets: ${formatDebugValue(chances.triplets, 'chance')}\n
+Chance of quadruplets: ${formatDebugValue(chances.quadruplets, 'chance')}\n
+Chance of quintuplets: ${formatDebugValue(chances.quintuplets, 'chance')}\n
+Losses: ${formatDebugValue(-totalLosses, 'money')}\n
+Gains: ${formatDebugValue(totalGains, 'money')}\n
+Balance: ${formatDebugValue(totalGains - totalLosses, 'money')}`;
 
     currentDrawing++;
 }
@@ -551,6 +594,11 @@ document.querySelector('.input-container').appendChild(flashButton);
 // Add CSS styles
 const style = document.createElement('style');
 document.head.appendChild(style);
+
+// Add style element after other style definitions
+const debugStyle = document.createElement('style');
+debugStyle.textContent = CSS_CLASSES;
+document.head.appendChild(debugStyle);
 
 // Add flash function
 function generateUniqueRandomNumbers() {
@@ -734,3 +782,46 @@ renderer.antialias = false;
 renderer.info.reset();
 console.log(renderer.info.render.calls);
 console.log(renderer.info.memory.geometries);
+
+// Add helper function for console formatting
+function formatConsoleOutput(value, type) {
+    const isZeroChance = type === 'chance' && value === 0;
+    const isLoss = type === 'money' && value < 0;
+    const isGain = type === 'money' && value > 0;
+    
+    if (isZeroChance || isLoss) {
+        return `%c${value}`, 'color: #ff0000'; // Red
+    } else if (isGain) {
+        return `%c${value}`, 'color: #00ff00'; // Green
+    }
+    return value;
+}
+
+// Update console logging
+function updateConsoleStats() {
+    console.log(
+        'Chances:', 
+        formatConsoleOutput(chances, 'chance'),
+        '\nLosses:', 
+        formatConsoleOutput(totalLosses, 'money'),
+        '\nGains:', 
+        formatConsoleOutput(totalGains, 'money'),
+        '\nBalance:', 
+        formatConsoleOutput(totalGains - totalLosses, 'money')
+    );
+}
+
+// Replace the debug console update in generateNumbers function
+function formatDebugValue(value, type) {
+    if (type === 'chance') {
+        return value === 0 ? `<span class="zero">${value.toFixed(6)}%</span>` : `${value.toFixed(6)}%`;
+    }
+    if (type === 'money') {
+        return value < 0 
+            ? `<span class="negative">${value.toFixed(2)} EUR</span>`
+            : value > 0 
+                ? `<span class="positive">${value.toFixed(2)} EUR</span>`
+                : `${value.toFixed(2)} EUR`;
+    }
+    return value;
+}
