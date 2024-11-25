@@ -37,6 +37,9 @@ const CENTER_X = 26; // Middle of 52 columns
 const CENTER_Y = 25; // Middle of 50 rows
 const CENTER_Z = 1;  // First layer
 
+// Add at top with other globals
+let totalDrawings = 0;
+
 // Replace the existing initStats function
 function initStats() {
     if (typeof Stats === 'undefined') {
@@ -71,55 +74,32 @@ function initStats() {
 // Initialize stats
 const stats = initStats();
 
-// Add probability calculation function
+// Modify calculateProbabilities()
 function calculateProbabilities() {
-    const probabilities = new Array(51).fill(0);
-    const totalDrawings = drawings.length;
+    // Initialize array with default size for all balls
+    const probabilities = new Array(51);
+    probabilities.fill(BASE_RADIUS, 1);
     
+    // Update totalDrawings based on drawings array length
+    totalDrawings = drawings.length;
+    
+    // If no drawings yet, return default sizes
     if (totalDrawings === 0) {
-        // All balls same size until first drawing
-        return probabilities.fill(BASE_RADIUS, 1);
+        return probabilities;
     }
-    
-    // Count occurrences
-    drawings.forEach(drawing => {
-        drawing.numbers.forEach(num => {
-            probabilities[num]++;
-        });
-    });
-    
-    // Convert to percentages
-    const totalNumbers = totalDrawings * 5;
-    for (let i = 1; i <= 50; i++) {
-        probabilities[i] = probabilities[i] / totalNumbers;
-    }
-    
-    // Find min and max non-zero probabilities
-    const nonZeroProbs = probabilities.slice(1).filter(p => p > 0);
-    const minProb = Math.min(...nonZeroProbs);
-    const maxProb = Math.max(...nonZeroProbs);
-    
-    const minNumber = probabilities.indexOf(minProb);
-    const maxNumber = probabilities.indexOf(maxProb);
-    const ratio = maxProb / minProb;
-    
-    console.log(`Drawing #${totalDrawings}`);
-    console.log(`Number with highest probability: ${maxNumber} (${(maxProb * 100).toFixed(2)}%)`);
-    console.log(`Number with lowest probability: ${minNumber} (${(minProb * 100).toFixed(2)}%)`);
-    console.log(`Size ratio: ${ratio.toFixed(2)}`);
-    console.log('-------------------');
-    
-    // Scale all sizes relative to minimum probability
-    for (let i = 1; i <= 50; i++) {
-        if (probabilities[i] === 0) {
-            probabilities[i] = BASE_RADIUS;
-        } else {
-            // Scale between BASE_RADIUS and 2*BASE_RADIUS
-            const scale = (probabilities[i] - minProb) / (maxProb - minProb);
-            probabilities[i] = BASE_RADIUS * (1 + scale);
+
+    // Get current input numbers
+    const inputNumbers = getCurrentInputNumbers();
+
+    // Make matched balls twice the size
+    if (inputNumbers.size === 5) {
+        for (let i = 1; i <= 50; i++) {
+            if (inputNumbers.has(i)) {
+                probabilities[i] = BASE_RADIUS * 2;
+            }
         }
     }
-    
+
     return probabilities;
 }
 
@@ -149,7 +129,7 @@ document.body.insertBefore(renderer.domElement, document.body.firstChild);
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.03;
+controls.dampingFactor = 0.05;
 controls.screenSpacePanning = true;
 
 // Lighting
@@ -272,7 +252,6 @@ function getCurrentInputNumbers() {
             numbers.add(parseInt(input.value));
         }
     });
-    console.log("Input numbers:", Array.from(numbers)); // Debug
     return numbers;
 }
 
