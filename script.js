@@ -115,20 +115,6 @@ renderer.domElement.style.left = '0';
 renderer.domElement.style.zIndex = '1';
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-// Remove Bokeh effect setup
-// const composer = new THREE.EffectComposer(renderer);
-// const renderPass = new THREE.RenderPass(scene, camera);
-// composer.addPass(renderPass);
-
-// const bokehPass = new THREE.BokehPass(scene, camera, {
-//     focus: 200,
-//     aperture: 2.2,
-//     maxblur: 0.005,
-//     width: window.innerWidth,
-//     height: window.innerHeight
-// });
-// composer.addPass(bokehPass);
-
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -153,8 +139,8 @@ const sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
 const materials = {
     default: new THREE.MeshPhongMaterial({
         color: DEFAULT_COLOR,
-        transparent: true,
-        opacity: 0.8
+        transparent: false,
+        opacity: 1.0
     }),
     matched: new THREE.MeshPhongMaterial({
         color: MATCH_COLORS[2],
@@ -744,5 +730,3 @@ renderer.antialias = false;
 renderer.info.reset();
 console.log(renderer.info.render.calls);
 console.log(renderer.info.memory.geometries);
-
-
