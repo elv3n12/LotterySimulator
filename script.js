@@ -8,16 +8,15 @@ camera.lookAt(25, 25, 25);
 
 // Add at the top with other configurations
 //const MATCH_COLOR = 0x00ff00; // Bright green
-const DEFAULT_COLOR = 0x163c8a; // default blue
+const DEFAULT_COLOR = 0x1e90ff; // Dodger blue for default
 
 // Update color constants at the top of script.js
 const MATCH_COLORS = {
-    1: 0xffffff,     // white
-    2: 0xff3300,  // Bright orange-red for 2 matches
-    3: 0x00ff00,  // Bright green for 3 matches
-    4: 0xff00ff,  // Bright magenta for 4 matches
-    5: 0xffff00   // Bright yellow for 5 matches
-
+    1: 0xffd700,  // Gold for 1 match
+    2: 0xff4500,  // Orange red for 2 matches
+    3: 0x32cd32,  // Lime green for 3 matches
+    4: 0x8a2be2,  // Blue violet for 4 matches
+    5: 0xff69b4   // Hot pink for 5 matches
 };
 
 // Add at top with other configurations
