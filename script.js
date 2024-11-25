@@ -3,7 +3,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // Position camera to see entire grid
-camera.position.set(25, 25, -15);
+camera.position.set(25, 25, -100);
 camera.lookAt(25, 25, 25);
 
 // Add at the top with other configurations
@@ -36,6 +36,40 @@ const matchGains = new Map(); // Store gains per drawing and match count
 const CENTER_X = 26; // Middle of 52 columns
 const CENTER_Y = 25; // Middle of 50 rows
 const CENTER_Z = 1;  // First layer
+
+// Replace the existing initStats function
+function initStats() {
+    if (typeof Stats === 'undefined') {
+        console.error('Stats.js library not loaded');
+        return null;
+    }
+
+    try {
+        const stats = new Stats();
+        if (!stats || !stats.dom) {
+            console.error('Failed to create Stats instance');
+            return null;
+        }
+
+        stats.showPanel(0);
+        stats.dom.style.cssText = `
+            position: absolute !important;
+            top: 0 !important;
+            right: 0 !important;
+            cursor: pointer !important;
+            opacity: 0.9 !important;
+            z-index: 10000 !important;
+        `;
+        document.body.appendChild(stats.dom);
+        return stats;
+    } catch (error) {
+        console.error('Error initializing Stats:', error);
+        return null;
+    }
+}
+
+// Initialize stats
+const stats = initStats();
 
 // Add probability calculation function
 function calculateProbabilities() {
@@ -278,6 +312,10 @@ function calculateMatchChances() {
 
 // Simplify animation loop to only handle ball fading
 function animate() {
+    if (stats?.begin) {
+        stats.begin();
+    }
+    
     requestAnimationFrame(animate);
     
     // Handle ball fading
@@ -296,6 +334,10 @@ function animate() {
     
     controls.update();
     renderer.render(scene, camera); // Use renderer instead of composer
+    
+    if (stats?.end) {
+        stats.end();
+    }
 }
 
 // Helper function to find most common numbers
@@ -553,6 +595,9 @@ document.addEventListener('keydown', (e) => {
             interfaceVisible = !interfaceVisible;
             document.querySelector('.input-container').classList.toggle('hidden');
             debugDiv.classList.toggle('hidden');
+            if (stats?.dom) {
+                stats.dom.classList.toggle('hidden');
+            }
         }
         // Let default tab behavior work if input is focused
     }
@@ -620,8 +665,7 @@ renderer.domElement.addEventListener('click', (event) => {
                         `Drawing #${drawingIndex + 1}\n` +
                         `Ball number: ${y}\n` +
                         `Matches found: ${matches}\n` +
-                        `Winning numbers: ${drawing.numbers.sort((a,b) => a-b).join(', ')}\n` +
-                        `Your numbers: ${Array.from(inputNumbers).sort((a,b) => a-b).join(', ')}`;
+                        `Winning numbers: ${drawing.numbers.sort((a,b) => a-b).join(', ')}\n`;
                 } else {
                     tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
                     tooltip.style.borderColor = '#444';
@@ -643,4 +687,5 @@ document.addEventListener('click', (event) => {
         tooltip.style.display = 'none';
     }
 });
+
 
