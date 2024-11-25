@@ -89,7 +89,7 @@ function calculateProbabilities() {
     if (inputNumbers.size === 5) {
         for (let i = 1; i <= 50; i++) {
             if (inputNumbers.has(i)) {
-                probabilities[i] = BASE_RADIUS * 2;
+                probabilities[i] = BASE_RADIUS * 1.5;
             }
         }
     }
@@ -135,7 +135,7 @@ scene.add(ambientLight);
 
 // Configuration
 const gridSize = 50;
-const spacing = 3;
+const spacing = 2.5;
 const dots = {};
 let currentDrawing = 1;
 
