@@ -3,8 +3,8 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // Position camera to see entire grid
-camera.position.set(25, 25, -100);
-camera.lookAt(25, 25, 25);
+camera.position.set(100, 100, 50);
+camera.lookAt(100, 100, 100);
 
 // Add at the top with other configurations
 //const MATCH_COLOR = 0x00ff00; // Bright green
@@ -33,8 +33,8 @@ let totalGains = 0;
 const matchGains = new Map(); // Store gains per drawing and match count
 
 // Add these configurations at the top
-const CENTER_X = 26; // Middle of 52 columns
-const CENTER_Y = 25; // Middle of 50 rows
+const CENTER_X = 100; // Middle of 52 columns
+const CENTER_Y = 100; // Middle of 50 rows
 const CENTER_Z = 1;  // First layer
 
 // Add at top with other globals
@@ -125,7 +125,7 @@ document.body.insertBefore(renderer.domElement, document.body.firstChild);
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+controls.dampingFactor = 0.04;
 controls.screenSpacePanning = true;
 
 // Lighting
