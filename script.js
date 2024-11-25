@@ -58,14 +58,7 @@ function initStats() {
         }
 
         stats.showPanel(0);
-        stats.dom.style.cssText = `
-            position: absolute !important;
-            top: 0 !important;
-            right: 0 !important;
-            cursor: pointer !important;
-            opacity: 0.9 !important;
-            z-index: 10000 !important;
-        `;
+        stats.dom.style.cssText = 'visibility:hidden!important; position: fixed !important; !important; cursor: pointer !important; z-index: 10000 !important;';
         document.body.appendChild(stats.dom);
         return stats;
     } catch (error) {
@@ -115,6 +108,20 @@ renderer.domElement.style.left = '0';
 renderer.domElement.style.zIndex = '1';
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
+// Remove Bokeh effect setup
+// const composer = new THREE.EffectComposer(renderer);
+// const renderPass = new THREE.RenderPass(scene, camera);
+// composer.addPass(renderPass);
+
+// const bokehPass = new THREE.BokehPass(scene, camera, {
+//     focus: 200,
+//     aperture: 2.2,
+//     maxblur: 0.005,
+//     width: window.innerWidth,
+//     height: window.innerHeight
+// });
+// composer.addPass(bokehPass);
+
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -139,8 +146,7 @@ const sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
 const materials = {
     default: new THREE.MeshPhongMaterial({
         color: DEFAULT_COLOR,
-        transparent: false,
-        opacity: 1.0
+        transparent: true,
     }),
     matched: new THREE.MeshPhongMaterial({
         color: MATCH_COLORS[2],
@@ -181,7 +187,7 @@ function createLayer(zLayer) {
             const geometry = new THREE.SphereGeometry(radius, 32, 32);
             const material = new THREE.MeshPhongMaterial({ 
                 color: DEFAULT_COLOR,
-                shininess: 100
+                shininess: 50
             });
             const dot = new THREE.Mesh(geometry, material);
             dot.position.set(x * spacing, y * spacing, zLayer * spacing);
