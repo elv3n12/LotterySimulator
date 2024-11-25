@@ -115,7 +115,7 @@ document.body.insertBefore(renderer.domElement, document.body.firstChild);
 // Add controls after renderer is created
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.01;
+controls.dampingFactor = 0.03;
 controls.screenSpacePanning = true;
 
 // Lighting
@@ -434,6 +434,7 @@ function updateAllMatches() {
                 dot.mesh.material.color.setHex(DEFAULT_COLOR);
                 dot.mesh.material.emissive.setHex(0x444444);
                 dot.mesh.material.opacity = dot.initialOpacity;
+                dot.mesh.scale.set(1, 1, 1); // Reset scale
                 dot.created = Date.now(); // Restart fade animation
             }
         });
@@ -449,13 +450,14 @@ function updateAllMatches() {
         });
 
         if (matches.size >= 2) {
-            // Apply colors to all numbers in matching drawing
+            // Apply colors and scale to all numbers in matching drawing
             drawing.numbers.forEach(number => {
                 const key = `${drawing.position.x},${number},${drawing.position.z}`;
                 if (dots[key]) {
                     const dot = dots[key];
                     const matchColor = MATCH_COLORS[matches.size];
                     dot.mesh.material.color.setHex(matchColor);
+                    dot.mesh.scale.set(2, 2, 2); // Scale up matched balls
                     dot.created = null; // Stop fade animation
                 }
             });
