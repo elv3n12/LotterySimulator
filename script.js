@@ -513,10 +513,10 @@ Most common triplet: ${tripletText}\n
 Most common quadruplet: ${quadrupletText}\n
 Most common quintuplet: ${quintupletText}\n
 Last occurrence of Prediction: ${findLastOccurrence(prediction)}\n
-Chance of pairs: ${formatDebugValue(chances.pairs, 'chance')}\n
-Chance of triplets: ${formatDebugValue(chances.triplets, 'chance')}\n
-Chance of quadruplets: ${formatDebugValue(chances.quadruplets, 'chance')}\n
-Chance of quintuplets: ${formatDebugValue(chances.quintuplets, 'chance')}\n
+Chance of pairs: ${formatDebugValue(chances.pairs, 'chance_pairs')}\n
+Chance of triplets: ${formatDebugValue(chances.triplets, 'chance_triplets')}\n
+Chance of quadruplets: ${formatDebugValue(chances.quadruplets, 'chance_quadruplets')}\n
+Chance of quintuplets: ${formatDebugValue(chances.quintuplets, 'chance_quintuplets')}\n
 Losses: ${formatDebugValue(-totalLosses, 'money')}\n
 Gains: ${formatDebugValue(totalGains, 'money')}\n
 Balance: ${formatDebugValue(totalGains - totalLosses, 'money')}`;
@@ -612,8 +612,7 @@ document.body.appendChild(debugDiv);
 // Initialize
 createLayer(1);
 animate();
-clearInterval(); // Clear any existing interval
-setInterval(generateNumbers, 125); // Slow down to 500ms
+setInterval(generateNumbers, 125); 
 renderer.domElement.style.zIndex = "1";
 
 // Add to your HTML after input container
@@ -847,9 +846,16 @@ function updateConsoleStats() {
 
 // Replace the debug console update in generateNumbers function
 function formatDebugValue(value, type) {
-    if (type === 'chance') {
-        return value === 0 ? `<span class="zero">${value.toFixed(6)}%</span>` : `${value.toFixed(6)}%`;
+    if (type.startsWith('chance')) {
+        const count = Math.floor((value / 100) * drawings.length);
+        const countText = drawings.length > 0 && value > 0 ? ` (${count} in ${drawings.length} drawings)` : '';
+        
+        if (value === 0) {
+            return `<span class="zero">${value.toFixed(2)}%</span>`;
+        }
+        return `${value.toFixed(2)}%${countText}`;
     }
+    
     if (type === 'money') {
         const formattedValue = formatEuroNumber(Math.abs(value));
         return value < 0 
@@ -858,6 +864,7 @@ function formatDebugValue(value, type) {
                 ? `<span class="positive">${formattedValue} EUR</span>`
                 : `${formattedValue} EUR`;
     }
+    
     return value;
 }
 
@@ -910,36 +917,4 @@ function formatEuroNumber(number) {
         .replace(/\./g, '_')           // temporarily replace decimal point
         .replace(/\B(?=(\d{3})+(?=\.|$))/g, '.')  // add thousands separators
         .replace(/_/g, ',');           // restore decimal point as comma
-}
-
-// Update formatDebugValue function
-function formatDebugValue(value, type) {
-    if (type === 'chance') {
-        return value === 0 ? `<span class="zero">${value.toFixed(6)}%</span>` : `${value.toFixed(6)}%`;
-    }
-    if (type === 'money') {
-        const formattedValue = formatEuroNumber(Math.abs(value));
-        return value < 0 
-            ? `<span class="negative">${formattedValue} EUR</span>`
-            : value > 0 
-                ? `<span class="positive">${formattedValue} EUR</span>`
-                : `${formattedValue} EUR`;
-    }
-    return value;
-}
-
-// Update formatConsoleOutput to use the same formatting
-function formatConsoleOutput(value, type) {
-    const isZeroChance = type === 'chance' && value === 0;
-    const isLoss = type === 'money' && value < 0;
-    const isGain = type === 'money' && value > 0;
-    
-    const formattedValue = type === 'money' ? formatEuroNumber(Math.abs(value)) : value;
-    
-    if (isZeroChance || isLoss) {
-        return `%c${formattedValue}`, 'color: #ff0000';
-    } else if (isGain) {
-        return `%c${formattedValue}`, 'color: #00ff00';
-    }
-    return formattedValue;
 }
