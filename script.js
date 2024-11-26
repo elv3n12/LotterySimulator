@@ -50,7 +50,19 @@ const CSS_CLASSES = `
     .negative { color: #ff4444; }
     .positive { color: #44ff44; }
     .zero { color: #ff4444; }
+    .use-link {
+        color: #4488ff;
+        cursor: pointer;
+        margin-left: 10px;
+        font-size: 0.8em;
+    }
+    .use-link:hover {
+        text-decoration: underline;
+    }
 `;
+
+// Add this flag at the top with other globals
+let isProcessingClick = false;
 
 // Replace the existing initStats function
 function initStats() {
@@ -474,13 +486,32 @@ function generateNumbers() {
     // Calculate match chances
     const chances = calculateMatchChances();
     
-    // Update debug console with all information
+    // Get all combinations
+    const pairs = findCommonCombinations(2);
+    const triplets = findCommonCombinations(3);
+    const quadruplets = findCommonCombinations(4);
+    const quintuplets = findCommonCombinations(5);
+
+    // Create text with conditional Use buttons
+    const pairText = pairs.length > 0 
+        ? `${pairs.join(',')} <a class="use-link" data-type="2">Use</a>`
+        : pairs.join(',');
+    const tripletText = triplets.length > 0 
+        ? `${triplets.join(',')} <a class="use-link" data-type="3">Use</a>`
+        : triplets.join(',');
+    const quadrupletText = quadruplets.length > 0 
+        ? `${quadruplets.join(',')} <a class="use-link" data-type="4">Use</a>`
+        : quadruplets.join(',');
+    const quintupletText = quintuplets.length > 0 
+        ? `${quintuplets.join(',')} <a class="use-link" data-type="5">Use</a>`
+        : quintuplets.join(',');
+    
     debugDiv.innerHTML = `Drawing #${currentDrawing}: ${Array.from(numbers).join(', ')}\n
 Most common numbers: ${getMostCommonNumbers().join(',')}\n
-Most common pair: ${findCommonCombinations(2).join(',')}\n
-Most common triplet: ${findCommonCombinations(3).join(',')}\n
-Most common quadruplet: ${findCommonCombinations(4).join(',')}\n
-Most common quintuplet: ${findCommonCombinations(5).join(',')}\n
+Most common pair: ${pairText}\n
+Most common triplet: ${tripletText}\n
+Most common quadruplet: ${quadrupletText}\n
+Most common quintuplet: ${quintupletText}\n
 Last occurrence of Prediction: ${findLastOccurrence(prediction)}\n
 Chance of pairs: ${formatDebugValue(chances.pairs, 'chance')}\n
 Chance of triplets: ${formatDebugValue(chances.triplets, 'chance')}\n
@@ -553,10 +584,10 @@ function updateAllMatches() {
         if (!matchGains.has(drawingKey)) {
             let gain = 0;
             switch(matches.size) {
-                case 2: gain = getRandomGain(3, 5); break;
-                case 3: gain = getRandomGain(17, 31); break;
-                case 4: gain = getRandomGain(650, 3700); break;
-                case 5: gain = getRandomGain(2000000, 167000000); break;
+                case 2: gain = getRandomGain(10,15); break;
+                case 3: gain = getRandomGain(60, 80); break;
+                case 4: gain = getRandomGain(1300, 1500); break;
+                case 5: gain = getRandomGain(15000000, 167000000); break;
             }
             matchGains.set(drawingKey, gain);
         }
@@ -581,7 +612,8 @@ document.body.appendChild(debugDiv);
 // Initialize
 createLayer(1);
 animate();
-setInterval(generateNumbers, 100);
+clearInterval(); // Clear any existing interval
+setInterval(generateNumbers, 125); // Slow down to 500ms
 renderer.domElement.style.zIndex = "1";
 
 // Add to your HTML after input container
@@ -825,3 +857,46 @@ function formatDebugValue(value, type) {
     }
     return value;
 }
+
+// Add helper function after other helper functions
+function fillInputsWithCombination(numbers) {
+    usedNumbers.clear();
+    inputs.forEach(input => input.value = '');
+    
+    // Fill inputs with the combination
+    numbers.forEach((num, index) => {
+        if (index < 5) {  // Only use up to 5 numbers
+            inputs[index].value = num;
+            usedNumbers.add(num);
+        }
+    });
+    
+    // Fill remaining inputs with random numbers if needed
+    let filledCount = Math.min(numbers.length, 5);
+    while (filledCount < 5) {
+        const num = Math.floor(Math.random() * 50) + 1;
+        if (!usedNumbers.has(num)) {
+            inputs[filledCount].value = num;
+            usedNumbers.add(num);
+            filledCount++;
+        }
+    }
+    
+    updateAllMatches();
+}
+
+// Add click handler after debugDiv creation
+debugDiv.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('use-link') && !isProcessingClick) {
+        isProcessingClick = true;
+        const type = parseInt(e.target.dataset.type);
+        const combination = findCommonCombinations(type);
+        if (combination.length > 0) {
+            await fillInputsWithCombination(combination);
+        }
+        // Add small delay before allowing next click
+        setTimeout(() => {
+            isProcessingClick = false;
+        }, 200);
+    }
+});
