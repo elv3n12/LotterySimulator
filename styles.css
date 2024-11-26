@@ -76,7 +76,7 @@ canvas {
     bottom: 10px;
     left: 10px;
     background: rgba(0, 0, 0, 0.7);
-    color: white;
+    color: rgb(133, 133, 133);
     padding: 10px;
     font-family: monospace;
     border-radius: 5px;
