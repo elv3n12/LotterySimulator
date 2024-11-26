@@ -821,12 +821,14 @@ function formatConsoleOutput(value, type) {
     const isLoss = type === 'money' && value < 0;
     const isGain = type === 'money' && value > 0;
     
+    const formattedValue = type === 'money' ? formatEuroNumber(Math.abs(value)) : value;
+    
     if (isZeroChance || isLoss) {
-        return `%c${value}`, 'color: #ff0000'; // Red
+        return `%c${formattedValue}`, 'color: #ff0000';
     } else if (isGain) {
-        return `%c${value}`, 'color: #00ff00'; // Green
+        return `%c${formattedValue}`, 'color: #00ff00';
     }
-    return value;
+    return formattedValue;
 }
 
 // Update console logging
@@ -849,11 +851,12 @@ function formatDebugValue(value, type) {
         return value === 0 ? `<span class="zero">${value.toFixed(6)}%</span>` : `${value.toFixed(6)}%`;
     }
     if (type === 'money') {
+        const formattedValue = formatEuroNumber(Math.abs(value));
         return value < 0 
-            ? `<span class="negative">${value.toFixed(2)} EUR</span>`
+            ? `<span class="negative">${formattedValue} EUR</span>`
             : value > 0 
-                ? `<span class="positive">${value.toFixed(2)} EUR</span>`
-                : `${value.toFixed(2)} EUR`;
+                ? `<span class="positive">${formattedValue} EUR</span>`
+                : `${formattedValue} EUR`;
     }
     return value;
 }
@@ -900,3 +903,43 @@ debugDiv.addEventListener('click', async (e) => {
         }, 200);
     }
 });
+
+// Add this helper function near other helper functions
+function formatEuroNumber(number) {
+    return number.toFixed(2)
+        .replace(/\./g, '_')           // temporarily replace decimal point
+        .replace(/\B(?=(\d{3})+(?=\.|$))/g, '.')  // add thousands separators
+        .replace(/_/g, ',');           // restore decimal point as comma
+}
+
+// Update formatDebugValue function
+function formatDebugValue(value, type) {
+    if (type === 'chance') {
+        return value === 0 ? `<span class="zero">${value.toFixed(6)}%</span>` : `${value.toFixed(6)}%`;
+    }
+    if (type === 'money') {
+        const formattedValue = formatEuroNumber(Math.abs(value));
+        return value < 0 
+            ? `<span class="negative">${formattedValue} EUR</span>`
+            : value > 0 
+                ? `<span class="positive">${formattedValue} EUR</span>`
+                : `${formattedValue} EUR`;
+    }
+    return value;
+}
+
+// Update formatConsoleOutput to use the same formatting
+function formatConsoleOutput(value, type) {
+    const isZeroChance = type === 'chance' && value === 0;
+    const isLoss = type === 'money' && value < 0;
+    const isGain = type === 'money' && value > 0;
+    
+    const formattedValue = type === 'money' ? formatEuroNumber(Math.abs(value)) : value;
+    
+    if (isZeroChance || isLoss) {
+        return `%c${formattedValue}`, 'color: #ff0000';
+    } else if (isGain) {
+        return `%c${formattedValue}`, 'color: #00ff00';
+    }
+    return formattedValue;
+}
