@@ -1,29 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>3D Lottery Visualization</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/BokehShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/BokehPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-
+  <meta charset="UTF-8">
+  <title>3D Lottery Visualization</title>
+  <link rel="stylesheet" href="style1.02.css">
 </head>
 <body>
-    <div class="input-container">
-        <input type="text" class="number-input" maxlength="2" autofocus>
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-    </div>
+  <!-- Include Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    <script src="script.js"></script>
+  <!-- Debug Console -->
+  <div class="debug-console" id="debugConsole">
+    <h2>Debug Console</h2>
+    <p>Total Draws: <span id="totalDraws">0</span></p>
+    <p>Top Numbers:</p>
+    <p id="topNumbers">---</p>
+    <p>Star Numbers: <span id="starNumbers">--, --</span></p>
+    <p>Total Loss: <span id="totalLoss">0€</span></p>
+    <p>Total Gains: <span id="totalGains">0€</span></p>
+    <p>Balance: <span id="balance">0€</span></p>
+    <div class="predictions">
+      <!-- Number Inputs -->
+      <input type="text" maxlength="2" id="field1" class="number-input" oninput="updatePrediction(1)" placeholder="00">
+      <input type="text" maxlength="2" id="field2" class="number-input" oninput="updatePrediction(2)" placeholder="00" disabled>
+      <input type="text" maxlength="2" id="field3" class="number-input" oninput="updatePrediction(3)" placeholder="00" disabled>
+      <input type="text" maxlength="2" id="field4" class="number-input" oninput="updatePrediction(4)" placeholder="00" disabled>
+      <input type="text" maxlength="2" id="field5" class="number-input" oninput="updatePrediction(5)" placeholder="00" disabled>
+      <!-- Star Number Inputs -->
+      <input type="text" maxlength="2" id="field6" class="star-input" oninput="updatePrediction(6)" placeholder="00" disabled>
+      <input type="text" maxlength="2" id="field7" class="star-input" oninput="updatePrediction(7)" placeholder="00" disabled>
+    </div>
+    <!-- Chance Calculations with Counts -->
+    <p>Chance of 1 number: <span id="chance1">--%</span> [<span id="count1">0</span>]</p>
+    <p>Chance of 2 numbers: <span id="chance2">--%</span> [<span id="count2">0</span>]</p>
+    <p>Chance of 3 numbers: <span id="chance3">--%</span> [<span id="count3">0</span>]</p>
+    <p>Chance of 4 numbers: <span id="chance4">--%</span> [<span id="count4">0</span>]</p>
+    <p>Chance of 5 numbers: <span id="chance5">--%</span> [<span id="count5">0</span>]</p>
+    <!-- Star Number Chances with Counts -->
+    <p class="star-chance">Chance of Star number 1: <span id="starChance1">--%</span> [<span id="starCount1">0</span>]</p>
+    <p class="star-chance">Chance of Star number 2: <span id="starChance2">--%</span> [<span id="starCount2">0</span>]</p>
+    <!-- Most Frequent Combinations -->
+    <p>Most Frequent Pair: <span id="mostFrequentPair">--</span></p>
+    <p>Most Frequent Triplet: <span id="mostFrequentTriplet">--</span></p>
+    <p>Most Frequent Quadruplet: <span id="mostFrequentQuadruplet">--</span></p>
+  </div>
+
+  <!-- Main Script -->
+  <script src="script1.03.js"></script>
 </body>
 </html>
