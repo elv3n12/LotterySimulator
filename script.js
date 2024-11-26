@@ -707,7 +707,7 @@ renderer.domElement.addEventListener('click', (event) => {
                 // Style tooltip based on matches
                 if (matches >= 2) {
                     const colorHex = MATCH_COLORS[matches].toString(16).padStart(6, '0');
-                    tooltip.style.backgroundColor = `#${colorHex}22`;
+                    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
                     tooltip.style.borderColor = `#${colorHex}`;
                     tooltip.textContent = 
                         `Drawing #${drawingIndex + 1}\n` +
