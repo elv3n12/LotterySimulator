@@ -1,29 +1,42 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>3D Lottery Visualization</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>3D Lottery Visualisation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/BokehShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/BokehPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-
+    <link rel="stylesheet" href="styles.css?v=20261020">
 </head>
 <body>
-    <div class="input-container">
-        <input type="text" class="number-input" maxlength="2" autofocus>
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-        <input type="text" class="number-input" maxlength="2">
-    </div>
-
-    <script src="script.js"></script>
+    <main class="interface" id="interface" aria-label="Lottery controls">
+        <form class="ticket" id="ticket" novalidate>
+            <fieldset>
+                <legend>Your five numbers</legend>
+                <div class="number-fields">
+                    <label><span>Number 1</span><input type="text" class="number-input" inputmode="numeric" pattern="(?:[1-9]|[1-4][0-9]|50)" maxlength="2" autocomplete="off" aria-label="Lottery number 1" autofocus></label>
+                    <label><span>Number 2</span><input type="text" class="number-input" inputmode="numeric" pattern="(?:[1-9]|[1-4][0-9]|50)" maxlength="2" autocomplete="off" aria-label="Lottery number 2"></label>
+                    <label><span>Number 3</span><input type="text" class="number-input" inputmode="numeric" pattern="(?:[1-9]|[1-4][0-9]|50)" maxlength="2" autocomplete="off" aria-label="Lottery number 3"></label>
+                    <label><span>Number 4</span><input type="text" class="number-input" inputmode="numeric" pattern="(?:[1-9]|[1-4][0-9]|50)" maxlength="2" autocomplete="off" aria-label="Lottery number 4"></label>
+                    <label><span>Number 5</span><input type="text" class="number-input" inputmode="numeric" pattern="(?:[1-9]|[1-4][0-9]|50)" maxlength="2" autocomplete="off" aria-label="Lottery number 5"></label>
+                </div>
+                <p class="validation-message" id="validation-message" aria-live="polite"></p>
+            </fieldset>
+            <div class="actions">
+                <button type="button" class="control-button" id="flash-button">Flash</button>
+                <button type="button" class="control-button" id="pause-button" aria-pressed="false">Pause</button>
+                <button type="button" class="control-button secondary" id="hide-button" aria-controls="interface">Hide UI</button>
+            </div>
+        </form>
+    </main>
+    <output class="debug-panel" id="stats" aria-live="off"></output>
+    <div class="tooltip" id="tooltip" role="status" hidden></div>
+    <p class="shortcut-hint">Press H to show or hide the interface</p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="lottery-core.js?v=20261020-5"></script>
+    <script src="script.js?v=20261020-5"></script>
 </body>
 </html>

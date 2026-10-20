@@ -1,140 +1,139 @@
-body { 
-    margin: 0; 
+:root {
+    color-scheme: dark;
+    font-family: "Press Start 2P", monospace;
     background: #000;
-    overflow: hidden;
+    --accent: #00ff66;
+    --panel: rgba(0, 0, 0, 0.78);
+    --border: #454545;
 }
 
-canvas { 
-    display: block; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1; /* Lower z-index than inputs */
-    cursor: pointer; /* Show pointer on hover */
-}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
 
-.input-container {
+canvas {
     position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    cursor: grab;
+    touch-action: none;
+}
+canvas:active { cursor: grabbing; }
+
+.interface {
+    position: fixed;
+    z-index: 10;
     top: 20px;
     left: 20px;
-    display: float;
-    gap: 15px;
-    z-index: 2000;
-    width: 550px;
+    max-width: calc(100vw - 40px);
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: var(--panel);
+    backdrop-filter: blur(8px);
 }
 
-.input-container #input {
-    margin-left: 16px;
-    margin-bottom: 16px;
+fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+legend { margin-bottom: 12px; color: #aaa; font-size: 9px; line-height: 1.5; }
+.number-fields, .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.number-fields label span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
-
-
 
 .number-input {
     width: 72px;
     height: 48px;
-    background: transparent;
-    border: 2px solid #444;
-    border-radius: 8px;
-    color: #fff;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 26px;
-    line-height: 100%;
-    text-align: center;
-    outline: none;
-    transition: all 0.3s ease;
-    padding: 0px 4px;
-    margin: 0;
+    padding: 0 4px;
     appearance: textfield;
-    box-shadow: none;
-    margin-left: 8px;}
-
-.number-input::-webkit-outer-spin-button,
-.number-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    background: #101010;
+    color: #fff;
+    font: 24px/1 "Press Start 2P", monospace;
+    text-align: center;
+    transition: border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
 }
-
-.number-input:focus {
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-    background: #1a1a1a;
+.number-input:focus-visible, .control-button:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.2);
 }
-
-.number-input:disabled {
+.number-input[aria-invalid="true"] { border-color: #ff5533; color: #ffb3a3; }
+.validation-message {
+    min-height: 14px;
+    margin: 8px 0 0;
+    color: #ff8e78;
+    font-size: 8px;
+    line-height: 1.7;
+}
+.actions { margin-top: 10px; }
+.control-button {
+    min-height: 38px;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
     background: #222;
-    color: #666;
+    color: #fff;
+    font: 9px/1 "Press Start 2P", monospace;
+    cursor: pointer;
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
-
-.number-input.valid {
-    border-color: #444;
-    color: #0f0;
-}
+.control-button:hover { border-color: var(--accent); background: #303030; }
+.control-button.secondary { color: #aaa; }
 
 .debug-panel {
     position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 10px;
-    font-family: monospace;
-    border-radius: 5px;
-    z-index: 1000;
+    z-index: 10;
+    bottom: 14px;
+    left: 14px;
+    max-width: min(650px, calc(100vw - 28px));
+    max-height: 46vh;
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel);
+    color: #eee;
+    font: 11px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
 }
-
-.flash-button {
-    font-family: 'Press Start 2P', cursive;
-    background: #222;
-    border: 2px solid #444;
-    border-radius: 8px;
-    color: #fff;
-    padding: 16px 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 120px;
-    text-align: center;
-    clear: both;
-    margin-top: 16px;
-}
-
-.flash-button:hover {
-    background: #333;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.input-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Toggle class for hiding interface */
-.hidden {
-    display: none !important;
-}
-
-/* Tooltip styling */
 .tooltip {
     position: fixed;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    z-index: 20;
+    max-width: min(390px, calc(100vw - 30px));
     padding: 12px 16px;
-    border-radius: 4px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    font: 12px/1.8 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     pointer-events: none;
-    z-index: 3000;
     white-space: pre-line;
-    border: 1px solid #444;
-    line-height: 1.8;
+}
+.shortcut-hint {
+    position: fixed;
+    z-index: 9;
+    right: 14px;
+    bottom: 8px;
+    color: #777;
+    font: 8px/1.5 "Press Start 2P", monospace;
+}
+.ui-hidden .interface, .ui-hidden .debug-panel, .ui-hidden .shortcut-hint { display: none; }
+[hidden] { display: none !important; }
+
+@media (max-width: 520px) {
+    .interface { top: 10px; left: 10px; max-width: calc(100vw - 20px); padding: 10px; }
+    .number-fields { gap: 6px; }
+    .number-input { width: calc((100vw - 68px) / 5); min-width: 46px; height: 44px; font-size: 17px; }
+    .debug-panel { font-size: 10px; }
+    .shortcut-hint { display: none; }
 }
 
-/* Add highlight effect for focused ball */
-.ball-highlight {
-    outline: 2px solid #fff;
-    outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
-
